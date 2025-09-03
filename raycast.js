@@ -32,82 +32,126 @@ class Ray{
         // Just copy and paste the horz code for the vertical code and than compair the two
 
         //point where the ray intercepts the X-axis or Y-axis
-        var shortXIntercept, shortYIntercpet, longYIntercpet, longXIntercpet;
+        var xIntercept, yIntercpet;
         //The space between each horizontal or vertical intersection
-        var shortX, shortY, longX, longY;
+        var xStep, yStep;
         //Did we hit a wall?
         var foundHorzWallHit = false;
         var foundVertWallHit = false;
         //The hit wall's X and Y coordniates
-        var shortWallHitX = 0;
-        var shortWallHitY = 0;
-        var longWallHitX = 0;
-        var longWallHitY = 0;
-
-        longXIntercpet = Math.floor(gamePlayer.x /TILE_SIZE) * TILE_SIZE;
-        longXIntercpet += this.isRayFacingRight ? TILE_SIZE : 0;
+        var horzWallHitX = 0;
+        var horzWallHitY = 0;
+        var vertWallHitX = 0;
+        var vertWallHitY = 0;
         
-        longYIntercpet = longXIntercpet - gamePlayer.x;
-        longYIntercpet = longYIntercpet / Math.tan(this.rayAngle);
-        longYIntercpet = gamePlayer.y + longYIntercpet
+
         
-        longX = TILE_SIZE;
-        longY = longX / tan(this.rayAngle);
-
-        longY *= (this.isRayFacingDown && longY < 0) ? -1 : 1
-        longY *= (this.isRayFacingUp && longY > 0) ? -1 : 1
-
-        var nextVertTouchX = longXIntercpet;
-        var nextVertTouchY = longYIntercpet;
-
         //Horizontal intersection code
 
-
-        //find the y coordinate of the closest horizontal grid intersection
-        shortYIntercpet = Math.floor(gamePlayer.y / TILE_SIZE) * TILE_SIZE;  
+        //The y coordinate of the horz intersection
+        yIntercpet = Math.floor(gamePlayer.y / TILE_SIZE) * TILE_SIZE;  
         
-        //if ray is pointing down. Add 32 to get to the next horizontal line
-        shortYIntercpet += this.isRayFacingDown ? TILE_SIZE : 0;
+        //If y faces down add 32
+        yIntercpet += this.isRayFacingDown ? TILE_SIZE : 0;
         
-        //find the x coordinate of the closets horizontal gird intersection
-        shortXIntercept = shortYIntercpet - gamePlayer.y;
-        shortXIntercept = shortXIntercept / Math.tan(this.rayAngle);
-        shortXIntercept = gamePlayer.x + shortXIntercept;
+        //The x coordinate of the horz intersection
+        xIntercept = yIntercpet - gamePlayer.y;
+        xIntercept = xIntercept / Math.tan(this.rayAngle);
+        xIntercept = gamePlayer.x + xIntercept;
 
-        //Calculate the increment of xstep and ystep (Finding delta X)
-        shortY = TILE_SIZE;
+        yStep = TILE_SIZE;
         //Because in graphics Y is inverted. When facing up we are negitive, when down we are positive.
-        shortY *= this.isRayFacingUp ? -1 : 1;
+        yStep *= this.isRayFacingUp ? -1 : 1;
 
-        shortX = shortY / Math.tan(this.rayAngle);
+        xStep = yStep / Math.tan(this.rayAngle);
         //If the ray is facing left, make sure the step is also on the left
-        shortX *= (this.isRayFacingLeft && shortX > 0) ? -1 : 1;
+        xStep *= (this.isRayFacingLeft && xStep > 0) ? -1 : 1;
         //if the ray is facing right, make sure the step is also on the right
-        shortX *= (this.isRayFacingRight && shortX < 0) ? -1 : 1;
+        xStep *= (this.isRayFacingRight && xStep < 0) ? -1 : 1;
 
 
-        var nextHorzTouchX = shortXIntercept;
-        var nextHorzTouchY = shortYIntercpet;
+        var nextHorzTouchX = xIntercept;
+        var nextHorzTouchY = yIntercpet;
 
         if(this.isRayFacingUp){
             nextHorzTouchY--;
         }
 
-        //increment xstep and ystep till we find a wall
-
         while(nextHorzTouchX >= 0 && nextHorzTouchX <= WINDOW_WIDTH && nextHorzTouchY >= 0 && nextHorzTouchY <= WINDOW_HEIGHT) {
 
             if(gameMap.hasWall(nextHorzTouchX, nextHorzTouchY)){
+                
+                //Draw a line at the horz wall intersection
                 foundHorzWallHit = true;
-                shortWallHitX = nextHorzTouchX;
-                shortWallHitY = nextHorzTouchY;
+                horzWallHitX = nextHorzTouchX;
+                horzWallHitY = nextHorzTouchY;
                 
                 stroke("red")
-                line(gamePlayer.x, gamePlayer.y, shortWallHitX, shortWallHitY);
+                line(gamePlayer.x, gamePlayer.y, horzWallHitX, horzWallHitY);
                 break;
-
+            
+            }else{
+                //Incerment till we find a horz wall intersection
+                nextHorzTouchX += xStep;
+                nextHorzTouchY += yStep;
+            }
         }
 
+        //Vertical intercetion code
+        
+        //X coordinate of the horz grid intersection
+        xIntercept = Math.floor(gamePlayer.y / TILE_SIZE) * TILE_SIZE;  
+        
+        //If x faces right add 32
+        xIntercept += this.isRayFacingRight ? TILE_SIZE : 0;
+        
+        //The y coordinate of the vertical grid intersection
+        yIntercpet = xIntercept - gamePlayer.x;
+        yIntercpet = yIntercpet * Math.tan(this.rayAngle);
+        yIntercpet = gamePlayer.y + yIntercpet;
+
+        xStep = TILE_SIZE;
+        //Because in graphics Y is inverted. When facing up we are negitive, when down we are positive.
+        xStep *= this.isRayFacingLeft ? -1 : 1;
+
+        yStep = xStep * Math.tan(this.rayAngle);
+        //If the ray is facing left, make sure the step is also on the left
+        yStep *= (this.isRayFacingUp && yStep > 0) ? -1 : 1;
+        //if the ray is facing right, make sure the step is also on the right
+        yStep *= (this.isRayFacingDown && yStep < 0) ? -1 : 1;
+
+
+        var nextVertTouchX = xIntercept;
+        var nextVertTouchY = yIntercpet;
+
+        //Forcing the ray to the litte cell on the left
+        if(this.isRayFacingLeft){
+            nextVertTouchX--;
+        }
+
+        while(nextVertTouchX >= 0 && nextVertTouchX <= WINDOW_WIDTH && nextVertTouchY >= 0 && nextVertTouchY <= WINDOW_HEIGHT) {
+
+            if(gameMap.hasWall(nextVertTouchX, nextVertTouchY)){
+                
+                //Draw a line at the horz wall intersection
+                foundVertWallHit = true;
+                vertWallHitX = nextHorzTouchX;
+                vertWallHitY = nextHorzTouchY;
+                
+                stroke("blue")
+                line(gamePlayer.x, gamePlayer.y, vertWallHitX, vertWallHitY);
+                break;
+            
+            }else{
+                //Incerment till we find a horz wall intersection
+                nextVertTouchX += xStep;
+                nextVertTouchY += yStep;
+            }
+        }
+
+        //Get the vert and hoz hits. 
+        //Get the distance of vert and honz. Choose the smallest value
+        //Use vert honz = sqarted (x2 - x1)*2 + (y2 - y1)*2
     }
 
     render(){
