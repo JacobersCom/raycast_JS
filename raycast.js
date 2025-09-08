@@ -18,8 +18,11 @@ class Ray{
         this.rayAngle = normalAngle(rayAngle);
         this.wallHitX = 0;
         this.wallHitY = 0;
+        
         //distance between player and wallhitX and Y
         this.distance = 0;
+        this.wasHitVert = false;
+        
 
         this.isRayFacingDown = this.rayAngle > 0 && this.rayAngle < Math.PI;
         this.isRayFacingUp = !this.isRayFacingDown;
@@ -55,9 +58,7 @@ class Ray{
         yIntercpet += this.isRayFacingDown ? TILE_SIZE : 0;
         
         //The x coordinate of the horz intersection
-        xIntercept = yIntercpet - gamePlayer.y;
-        xIntercept = xIntercept / Math.tan(this.rayAngle);
-        xIntercept = gamePlayer.x + xIntercept;
+        xIntercept = gamePlayer.x + (yIntercpet - gamePlayer.y) / Math.tan(this.rayAngle);
 
         yStep = TILE_SIZE;
         //Because in graphics Y is inverted. When facing up we are negitive, when down we are positive.
@@ -86,8 +87,6 @@ class Ray{
                 horzWallHitX = nextHorzTouchX;
                 horzWallHitY = nextHorzTouchY;
                 
-                stroke("red")
-                line(gamePlayer.x, gamePlayer.y, horzWallHitX, horzWallHitY);
                 break;
             
             }else{
@@ -100,21 +99,19 @@ class Ray{
         //Vertical intercetion code
         
         //X coordinate of the horz grid intersection
-        xIntercept = Math.floor(gamePlayer.y / TILE_SIZE) * TILE_SIZE;  
+        xIntercept = Math.floor(gamePlayer.x / TILE_SIZE) * TILE_SIZE;  
         
         //If x faces right add 32
         xIntercept += this.isRayFacingRight ? TILE_SIZE : 0;
         
         //The y coordinate of the vertical grid intersection
-        yIntercpet = xIntercept - gamePlayer.x;
-        yIntercpet = yIntercpet * Math.tan(this.rayAngle);
-        yIntercpet = gamePlayer.y + yIntercpet;
+        yIntercpet = gamePlayer.y + (xIntercept - gamePlayer.x) * Math.tan(this.rayAngle);
 
         xStep = TILE_SIZE;
         //Because in graphics Y is inverted. When facing up we are negitive, when down we are positive.
         xStep *= this.isRayFacingLeft ? -1 : 1;
 
-        yStep = xStep * Math.tan(this.rayAngle);
+        yStep = TILE_SIZE * Math.tan(this.rayAngle);
         //If the ray is facing left, make sure the step is also on the left
         yStep *= (this.isRayFacingUp && yStep > 0) ? -1 : 1;
         //if the ray is facing right, make sure the step is also on the right
@@ -135,11 +132,8 @@ class Ray{
                 
                 //Draw a line at the horz wall intersection
                 foundVertWallHit = true;
-                vertWallHitX = nextHorzTouchX;
-                vertWallHitY = nextHorzTouchY;
-                
-                stroke("blue")
-                line(gamePlayer.x, gamePlayer.y, vertWallHitX, vertWallHitY);
+                vertWallHitX = nextVertTouchX;
+                vertWallHitY = nextVertTouchY;
                 break;
             
             }else{
@@ -149,16 +143,30 @@ class Ray{
             }
         }
 
-        //Get the vert and hoz hits. 
-        //Get the distance of vert and honz. Choose the smallest value
-        //Use vert honz = sqarted (x2 - x1)*2 + (y2 - y1)*2
+        //Getting the distance of the horz wall hit
+        var horzHitDist = (foundHorzWallHit) 
+        ? distanceBetweenPoints(gamePlayer.x, gamePlayer.y, horzWallHitX, horzWallHitY) 
+        : Number.MAX_VALUE; 
+        //Getting the distance of the vert wall hit 
+        var vertHitDist = (foundVertWallHit) 
+        ? distanceBetweenPoints(gamePlayer.x, gamePlayer.y, vertWallHitX, vertWallHitY)
+        : Number.MAX_VALUE;
+       
+        //Comparing the X and Y values to see which point is closer
+        this.wallHitX = (horzHitDist < vertHitDist) ? horzWallHitX : vertWallHitX;
+        this.wallHitY = (horzHitDist < vertHitDist) ? horzWallHitY : vertWallHitY;
+        //Doing the same for the distance to store the smallest values out of the two
+        this.distance = (horzHitDist < vertHitDist) ? horzHitDist : vertHitDist;
+        this.wasHitVert = (vertHitDist < horzHitDist);
     }
 
     render(){
         stroke("rgba(255,0,0,0.3)");
-        line(gamePlayer.x, gamePlayer.y, 
-            gamePlayer.x + Math.cos(this.rayAngle) * 30,
-            gamePlayer.y + Math.sin(this.rayAngle) * 30);
+        line(
+            gamePlayer.x, 
+            gamePlayer.y, 
+           this.wallHitX, 
+           this.wallHitY);
     }
 
 }
@@ -253,6 +261,11 @@ var gamePlayer = new player();
 var rays = [];
 
 
+function distanceBetweenPoints(x1,y1,x2,y2){
+
+    return Math.sqrt((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1));
+}
+
 function normalAngle(angle){
     angle = angle % (2 * Math.PI);
     if(angle < 0){
@@ -296,7 +309,7 @@ function castAllRays(){
     //clearing out old rays
     rays.length = 0;
 
-    for(var i = 0; i < 1; i++){
+    for(var i = 0; i < NUM_RAYS; i++){
         //Creating a ray
         var ray = new Ray(rayAngle);
         ray.cast(columnID);
@@ -317,6 +330,7 @@ function setup(){
 
 function update(){ // Pre frame.
     gamePlayer.update();
+    castAllRays();
 }
 
 function draw(){
@@ -327,5 +341,4 @@ function draw(){
         ray.render();
     }
     gamePlayer.render();
-    castAllRays();
 }
