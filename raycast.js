@@ -73,9 +73,9 @@ class Ray{
 
         var nextHorzTouchX = xIntercept;
         var nextHorzTouchY = yIntercpet;
-
+       
         if(this.isRayFacingUp){
-            nextHorzTouchY--;
+            nextHorzTouchY--
         }
 
         while(nextHorzTouchX >= 0 && nextHorzTouchX <= WINDOW_WIDTH && nextHorzTouchY >= 0 && nextHorzTouchY <= WINDOW_HEIGHT) {
