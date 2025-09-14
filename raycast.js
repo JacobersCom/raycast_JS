@@ -74,13 +74,10 @@ class Ray{
         var nextHorzTouchX = xIntercept;
         var nextHorzTouchY = yIntercpet;
        
-        if(this.isRayFacingUp){
-            nextHorzTouchY--
-        }
 
         while(nextHorzTouchX >= 0 && nextHorzTouchX <= WINDOW_WIDTH && nextHorzTouchY >= 0 && nextHorzTouchY <= WINDOW_HEIGHT) {
 
-            if(gameMap.hasWall(nextHorzTouchX, nextHorzTouchY)){
+            if(gameMap.hasWall(nextHorzTouchX, nextHorzTouchY - (this.isRayFacingUp ? 1:0))){
                 
                 //Draw a line at the horz wall intersection
                 foundHorzWallHit = true;
@@ -121,14 +118,10 @@ class Ray{
         var nextVertTouchX = xIntercept;
         var nextVertTouchY = yIntercpet;
 
-        //Forcing the ray to the litte cell on the left
-        if(this.isRayFacingLeft){
-            nextVertTouchX--;
-        }
 
         while(nextVertTouchX >= 0 && nextVertTouchX <= WINDOW_WIDTH && nextVertTouchY >= 0 && nextVertTouchY <= WINDOW_HEIGHT) {
 
-            if(gameMap.hasWall(nextVertTouchX, nextVertTouchY)){
+            if(gameMap.hasWall(nextVertTouchX - (this.isRayFacingLeft ? 1:0), nextVertTouchY)){
                 
                 //Draw a line at the horz wall intersection
                 foundVertWallHit = true;
