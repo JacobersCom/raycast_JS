@@ -1,5 +1,5 @@
 //Map sizing, in pixals
-const TILE_SIZE = 32;
+const TILE_SIZE = 64;
 const WALL_WIDTH = 1;
 const MAP_NUM_ROWS = 11;
 const MAP_NUM_COLS = 15;
@@ -20,148 +20,118 @@ class Ray{
         this.rayAngle = normalAngle(rayAngle);
         this.wallHitX = 0;
         this.wallHitY = 0;
-        
-        //distance between player and wallhitX and Y
         this.distance = 0;
+        
         this.wasHitVert = false;
         
-
         this.isRayFacingDown = this.rayAngle > 0 && this.rayAngle < Math.PI;
         this.isRayFacingUp = !this.isRayFacingDown;
         this.isRayFacingRight = this.rayAngle < 0.5 * Math.PI || this.rayAngle > 1.5 * Math.PI;
         this.isRayFacingLeft = !this.isRayFacingRight;
     }
 
-    cast(columnID){
+   cast(columnId) {
+        var xintercept, yintercept;
+        var xstep, ystep;
 
-        // Just copy and paste the horz code for the vertical code and than compair the two
-
-        //point where the ray intercepts the X-axis or Y-axis
-        var xIntercept, yIntercpet;
-        //The space between each horizontal or vertical intersection
-        var xStep, yStep;
-        //Did we hit a wall?
+        ///////////////////////////////////////////
+        // HORIZONTAL RAY-GRID INTERSECTION CODE
+        ///////////////////////////////////////////
         var foundHorzWallHit = false;
-        var foundVertWallHit = false;
-        //The hit wall's X and Y coordniates
         var horzWallHitX = 0;
         var horzWallHitY = 0;
-        var vertWallHitX = 0;
-        var vertWallHitY = 0;
-        
 
-        
-        //Horizontal intersection code
+        // Find the y-coordinate of the closest horizontal grid intersenction
+        yintercept = Math.floor(gamePlayer.y / TILE_SIZE) * TILE_SIZE;
+        yintercept += this.isRayFacingDown ? TILE_SIZE : 0;
 
-        //The y coordinate of the horz intersection
-        yIntercpet = Math.floor(gamePlayer.y / TILE_SIZE) * TILE_SIZE;  
-        
-        //If y faces down add 32
-        yIntercpet += this.isRayFacingDown ? TILE_SIZE : 0;
-        
-        //The x coordinate of the horz intersection
-        xIntercept = gamePlayer.x + (yIntercpet - gamePlayer.y) / Math.tan(this.rayAngle);
+        // Find the x-coordinate of the closest horizontal grid intersection
+        xintercept = gamePlayer.x + (yintercept - gamePlayer.y) / Math.tan(this.rayAngle);
 
-        yStep = TILE_SIZE;
-        //Because in graphics Y is inverted. When facing up we are negitive, when down we are positive.
-        yStep *= this.isRayFacingUp ? -1 : 1;
+        // Calculate the increment xstep and ystep
+        ystep = TILE_SIZE;
+        ystep *= this.isRayFacingUp ? -1 : 1;
 
-        xStep = yStep / Math.tan(this.rayAngle);
-        //If the ray is facing left, make sure the step is also on the left
-        xStep *= (this.isRayFacingLeft && xStep > 0) ? -1 : 1;
-        //if the ray is facing right, make sure the step is also on the right
-        xStep *= (this.isRayFacingRight && xStep < 0) ? -1 : 1;
+        xstep = TILE_SIZE / Math.tan(this.rayAngle);
+        xstep *= (this.isRayFacingLeft && xstep > 0) ? -1 : 1;
+        xstep *= (this.isRayFacingRight && xstep < 0) ? -1 : 1;
 
+        var nextHorzTouchX = xintercept;
+        var nextHorzTouchY = yintercept;
 
-        var nextHorzTouchX = xIntercept;
-        var nextHorzTouchY = yIntercpet;
-       
-
-        while(nextHorzTouchX >= 0 && nextHorzTouchX <= WINDOW_WIDTH && nextHorzTouchY >= 0 && nextHorzTouchY <= WINDOW_HEIGHT) {
-
-            if(gameMap.hasWall(nextHorzTouchX, nextHorzTouchY - (this.isRayFacingUp ? 1:0))){
-                
-                //Draw a line at the horz wall intersection
+        // Increment xstep and ystep until we find a wall
+        while (nextHorzTouchX >= 0 && nextHorzTouchX <= WINDOW_WIDTH && nextHorzTouchY >= 0 && nextHorzTouchY <= WINDOW_HEIGHT) {
+            if (gameMap.hasWall(nextHorzTouchX, nextHorzTouchY - (this.isRayFacingUp ? 1 : 0))) {
                 foundHorzWallHit = true;
                 horzWallHitX = nextHorzTouchX;
                 horzWallHitY = nextHorzTouchY;
-                
                 break;
-            
-            }else{
-                //Incerment till we find a horz wall intersection
-                nextHorzTouchX += xStep;
-                nextHorzTouchY += yStep;
+            } else {
+                nextHorzTouchX += xstep;
+                nextHorzTouchY += ystep;
             }
         }
-
-        //Vertical intercetion code
         
-        //X coordinate of the horz grid intersection
-        xIntercept = Math.floor(gamePlayer.x / TILE_SIZE) * TILE_SIZE;  
-        
-        //If x faces right add 32
-        xIntercept += this.isRayFacingRight ? TILE_SIZE : 0;
-        
-        //The y coordinate of the vertical grid intersection
-        yIntercpet = gamePlayer.y + (xIntercept - gamePlayer.x) * Math.tan(this.rayAngle);
+        ///////////////////////////////////////////
+        // VERTICAL RAY-GRID INTERSECTION CODE
+        ///////////////////////////////////////////
+        var foundVertWallHit = false;
+        var vertWallHitX = 0;
+        var vertWallHitY = 0;
 
-        xStep = TILE_SIZE;
-        //Because in graphics Y is inverted. When facing up we are negitive, when down we are positive.
-        xStep *= this.isRayFacingLeft ? -1 : 1;
+        // Find the x-coordinate of the closest vertical grid intersenction
+        xintercept = Math.floor(gamePlayer.x / TILE_SIZE) * TILE_SIZE;
+        xintercept += this.isRayFacingRight ? TILE_SIZE : 0;
 
-        yStep = TILE_SIZE * Math.tan(this.rayAngle);
-        //If the ray is facing left, make sure the step is also on the left
-        yStep *= (this.isRayFacingUp && yStep > 0) ? -1 : 1;
-        //if the ray is facing right, make sure the step is also on the right
-        yStep *= (this.isRayFacingDown && yStep < 0) ? -1 : 1;
+        // Find the y-coordinate of the closest vertical grid intersection
+        yintercept = gamePlayer.y + (xintercept - gamePlayer.x) * Math.tan(this.rayAngle);
 
+        // Calculate the increment xstep and ystep
+        xstep = TILE_SIZE;
+        xstep *= this.isRayFacingLeft ? -1 : 1;
 
-        var nextVertTouchX = xIntercept;
-        var nextVertTouchY = yIntercpet;
+        ystep = TILE_SIZE * Math.tan(this.rayAngle);
+        ystep *= (this.isRayFacingUp && ystep > 0) ? -1 : 1;
+        ystep *= (this.isRayFacingDown && ystep < 0) ? -1 : 1;
 
+        var nextVertTouchX = xintercept;
+        var nextVertTouchY = yintercept;
 
-        while(nextVertTouchX >= 0 && nextVertTouchX <= WINDOW_WIDTH && nextVertTouchY >= 0 && nextVertTouchY <= WINDOW_HEIGHT) {
-
-            if(gameMap.hasWall(nextVertTouchX - (this.isRayFacingLeft ? 1:0), nextVertTouchY)){
-                
-                //Draw a line at the horz wall intersection
+        // Increment xstep and ystep until we find a wall
+        while (nextVertTouchX >= 0 && nextVertTouchX <= WINDOW_WIDTH && nextVertTouchY >= 0 && nextVertTouchY <= WINDOW_HEIGHT) {
+            if (gameMap.hasWall(nextVertTouchX - (this.isRayFacingLeft ? 1 : 0), nextVertTouchY)) {
                 foundVertWallHit = true;
                 vertWallHitX = nextVertTouchX;
                 vertWallHitY = nextVertTouchY;
                 break;
-            
-            }else{
-                //Incerment till we find a horz wall intersection
-                nextVertTouchX += xStep;
-                nextVertTouchY += yStep;
+            } else {
+                nextVertTouchX += xstep;
+                nextVertTouchY += ystep;
             }
         }
 
-        //Getting the distance of the horz wall hit
-        var horzHitDist = (foundHorzWallHit) 
-        ? distanceBetweenPoints(gamePlayer.x, gamePlayer.y, horzWallHitX, horzWallHitY) 
-        : Number.MAX_VALUE; 
-        //Getting the distance of the vert wall hit 
-        var vertHitDist = (foundVertWallHit) 
-        ? distanceBetweenPoints(gamePlayer.x, gamePlayer.y, vertWallHitX, vertWallHitY)
-        : Number.MAX_VALUE;
-       
-        //Comparing the X and Y values to see which point is closer
-        this.wallHitX = (horzHitDist < vertHitDist) ? horzWallHitX : vertWallHitX;
-        this.wallHitY = (horzHitDist < vertHitDist) ? horzWallHitY : vertWallHitY;
-        //Doing the same for the distance to store the smallest values out of the two
-        this.distance = (horzHitDist < vertHitDist) ? horzHitDist : vertHitDist;
-        this.wasHitVert = (vertHitDist < horzHitDist);
-    }
+        // Calculate both horizontal and vertical distances and choose the smallest value
+        var horzHitDistance = (foundHorzWallHit)
+            ? distanceBetweenPoints(gamePlayer.x, gamePlayer.y, horzWallHitX, horzWallHitY)
+            : Number.MAX_VALUE;
+        var vertHitDistance = (foundVertWallHit)
+            ? distanceBetweenPoints(gamePlayer.x, gamePlayer.y, vertWallHitX, vertWallHitY)
+            : Number.MAX_VALUE;
 
-    render(){
-        stroke("rgba(255,0,0,255)");
+        // only store the smallest of the distances
+        this.wallHitX = (horzHitDistance < vertHitDistance) ? horzWallHitX : vertWallHitX;
+        this.wallHitY = (horzHitDistance < vertHitDistance) ? horzWallHitY : vertWallHitY;
+        this.distance = (horzHitDistance < vertHitDistance) ? horzHitDistance : vertHitDistance;
+        this.wasHitVertical = (vertHitDistance < horzHitDistance);
+    }
+    render() {
+        stroke("rgba(255, 0, 0, 1.0)");
         line(
-        MINI_MAP_SCALE_FACTOR * gamePlayer.x, 
-        MINI_MAP_SCALE_FACTOR * gamePlayer.y, 
-        MINI_MAP_SCALE_FACTOR * this.wallHitX, 
-        MINI_MAP_SCALE_FACTOR * this.wallHitY);
+            MINI_MAP_SCALE_FACTOR * gamePlayer.x,
+            MINI_MAP_SCALE_FACTOR * gamePlayer.y,
+            MINI_MAP_SCALE_FACTOR * this.wallHitX,
+            MINI_MAP_SCALE_FACTOR * this.wallHitY
+        );
     }
 
 }
@@ -214,22 +184,23 @@ class Map{
     }
 }
 
-class player {
+class Player {
     
     constructor(){ // memeber variables
         this.x = WINDOW_WIDTH / 2; //pixal X
-        this.y = WINDOW_HEIGHT / 2;// pixal Y
-        this.radius = 3; // pixels
+        this.y = WINDOW_HEIGHT / 7;// pixal Y
+        this.radius = 4; // pixels
         this.turnDirection = 0; // -1 for left, +1 for right
         this.walkDirection = 0; // -1 for down, +1 for up
         this.rotationAngle = Math.PI / 2; // from dergrees to radians
         this.moveSpeed = 2.0; 
-        this.rotationSpeed = 2 * (Math.PI/180); // 2 degrees to radians "RotationSpeed is 2 degrees per frame
+        this.rotationSpeed = 3 * (Math.PI/180); // 2 degrees to radians "RotationSpeed is 2 degrees per frame
     }
 
     update(){ // updates player position
         this.rotationAngle += this.turnDirection * this.rotationSpeed;
         var moveStep = this.walkDirection * this.moveSpeed; // 0 if not moving, 2 if moving forward, -2 two if moving backwards
+        
         var newPlayerX = this.x + Math.cos(this.rotationAngle) * moveStep; // The next position of the player in the X
         var newPlayerY = this.y + Math.sin(this.rotationAngle) * moveStep; // The next position of the player in the Y
         
@@ -253,7 +224,7 @@ class player {
 }
 
 var gameMap = new Map();
-var gamePlayer = new player();
+var gamePlayer = new Player();
 var rays = [];
 
 
@@ -296,6 +267,27 @@ function keyReleased(){ // handles key releases
     }
 }
 
+function render3DProjectedWalls(){
+    for(var i = 0; i < NUM_RAYS; i++){
+        //current ray
+        var ray = rays[i];
+        var perpdicularDist = ray.distance * Math.cos(ray.rayAngle - gamePlayer.rotationAngle);
+        
+        var distFromPlayerToProjection =  (WINDOW_WIDTH / 2) / Math.tan(FOV_ANGLE / 2);        
+        //Projected wall height
+        var wallStripHeight = (TILE_SIZE / perpdicularDist) * distFromPlayerToProjection; 
+
+        fill("rgba(255,255,255,255)")
+        noStroke();
+
+        rect(i * WALL_WIDTH, 
+            (WINDOW_HEIGHT / 2) - (wallStripHeight / 2),
+            WALL_WIDTH,
+            wallStripHeight
+        );
+    }
+}
+
 function castAllRays(){
     var columnID = 0; // 0 - how many rays I have;
     
@@ -303,7 +295,7 @@ function castAllRays(){
     var rayAngle = gamePlayer.rotationAngle - (FOV_ANGLE / 2);
 
     //clearing out old rays
-    rays.length = 0;
+    rays = [];
 
     for(var i = 0; i < NUM_RAYS; i++){
         //Creating a ray
@@ -330,8 +322,11 @@ function update(){ // Pre frame.
 }
 
 function draw(){
+    clear("#212121");
     update();
     
+    render3DProjectedWalls();
+
     gameMap.render();
     for(ray of rays){
         ray.render();
