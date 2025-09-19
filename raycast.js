@@ -3,6 +3,8 @@ const TILE_SIZE = 32;
 const WALL_WIDTH = 1;
 const MAP_NUM_ROWS = 11;
 const MAP_NUM_COLS = 15;
+const MINI_MAP_SCALE_FACTOR = 0.2;
+
 
 //player filed of view
 const FOV_ANGLE = 60 * (Math.PI / 180);
@@ -154,12 +156,12 @@ class Ray{
     }
 
     render(){
-        stroke("rgba(255,0,0,0.3)");
+        stroke("rgba(255,0,0,255)");
         line(
-            gamePlayer.x, 
-            gamePlayer.y, 
-           this.wallHitX, 
-           this.wallHitY);
+        MINI_MAP_SCALE_FACTOR * gamePlayer.x, 
+        MINI_MAP_SCALE_FACTOR * gamePlayer.y, 
+        MINI_MAP_SCALE_FACTOR * this.wallHitX, 
+        MINI_MAP_SCALE_FACTOR * this.wallHitY);
     }
 
 }
@@ -205,7 +207,8 @@ class Map{
                 var titleColor = this.grid[i][j] == 1 ? "#222" : "#fff";
                 stroke("#222");
                 fill(titleColor);
-                rect(titleX, titleY, TILE_SIZE, TILE_SIZE);
+                rect(MINI_MAP_SCALE_FACTOR * titleX, MINI_MAP_SCALE_FACTOR * titleY, 
+                    MINI_MAP_SCALE_FACTOR * TILE_SIZE, MINI_MAP_SCALE_FACTOR * TILE_SIZE);
             }
         }
     }
@@ -239,7 +242,7 @@ class player {
     render(){ //Creates the player on the screen
         noStroke();
         fill("blue");
-        circle(this.x, this.y, this.radius);
+        circle(MINI_MAP_SCALE_FACTOR *this.x, MINI_MAP_SCALE_FACTOR * this.y, MINI_MAP_SCALE_FACTOR *this.radius);
        /* stroke("red");
         line(
             this.x, this.y, 
