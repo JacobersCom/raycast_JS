@@ -5,3 +5,6 @@
 The goal of this project was to gain a understanding of the underlining math involed with creating a raycaster.
 
 The project uses P5
+
+
+To see a demo go checkout the page!
