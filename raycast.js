@@ -3,7 +3,7 @@ const TILE_SIZE = 64;
 const WALL_WIDTH = 1;
 const MAP_NUM_ROWS = 11;
 const MAP_NUM_COLS = 15;
-const MINI_MAP_SCALE_FACTOR = 0.2;
+const MINI_MAP_SCALE_FACTOR = 0.1;
 
 
 //player filed of view
@@ -151,6 +151,7 @@ class Ray {
         this.wasHitVert = (vertHitDist < horzHitDist);
     }
 
+    //Rendering rays
     render() {
         stroke("rgba(255,0,0,255)");
         line(
@@ -166,6 +167,8 @@ class Ray {
 class Map {
     constructor() {
         this.grid = [
+
+            //Fill map with random values between 0 - 255
 
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
@@ -200,6 +203,8 @@ class Map {
         for (var i = 0; i < MAP_NUM_ROWS; i++) {
             for (var j = 0; j < MAP_NUM_COLS; j++) {
 
+                var min = 0;
+                var max = 255;
                 var titleX = j * TILE_SIZE;
                 var titleY = i * TILE_SIZE;
                 var titleColor = this.grid[i][j] == 1 ? "#222" : "#fff";
@@ -314,7 +319,8 @@ function render3DProjectedWalls() {
         if (alpha > 1.0) alpha = 1.0;
         if (alpha < 0.0) alpha = 0.0;
 
-        fill("rgba(255,255,255," + alpha + ")");
+
+        fill("rgba(255, 255, 255, " + alpha + ")");
         noStroke();
 
         rect(i * WALL_WIDTH, (WINDOW_HEIGHT / 2) - (wallStripHeight / 2),
