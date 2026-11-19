@@ -6,5 +6,4 @@ The goal of this project was to gain a understanding of the underlining math inv
 
 The project uses P5
 
-
-To see a demo go checkout the page!
+![Demo image](./demo.png)
